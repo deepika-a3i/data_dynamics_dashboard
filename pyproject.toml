@@ -1,0 +1,17 @@
+[project]
+name = "dd-dashboard"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "holidays>=0.66",
+    "pandas>=2.2.3",
+    "plotly>=6.0.0",
+    "polars>=1.22.0",
+    "pycountry>=24.6.1",
+    "scikit-learn>=1.6.1",
+    "skforecast>=0.14.0",
+    "statsmodels>=0.14.4",
+    "streamlit>=1.42.0",
+]
