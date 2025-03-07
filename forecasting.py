@@ -68,7 +68,7 @@ def forecast_sales(sales_df,
         if min_data_points < 10:
             print(f"Warning: Too few observations ({min_data_points}) for SARIMA. Switching to non-seasonal ARIMA.")
             seasonal_period = 0  # Disable seasonality
-        model_params = model_params or {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, seasonal_period)}
+        params = model_params or {"order": (0, 1, 1), "seasonal_order": (0, 1, 1, seasonal_period)}
         if model_file_name in os.listdir(models_folder) and not validation_forecast:
             model_fit = joblib.load(models_folder/model_file_name)
         else:
