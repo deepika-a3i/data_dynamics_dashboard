@@ -22,5 +22,5 @@ uv pip install -r requirements.txt
 
 3. Start the server by running the following command
 ```
-streamlit run Main_Menu.py
+streamlit run Data_Portal.py
 ```
