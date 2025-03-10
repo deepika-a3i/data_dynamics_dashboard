@@ -19,6 +19,142 @@ import streamlit as st
 
 import plotly.express as px
 
+
+def train_sarimax_model(df_product, value_to_plot, params):
+    """
+    Trains a SARIMAX model and updates the Streamlit UI with status messages.
+    
+    Parameters:
+        df_product (pd.DataFrame): The dataset containing the time series and exogenous variables.
+        value_to_plot (str): The target variable to model.
+        params (dict): Dictionary containing 'order' and 'seasonal_order' for SARIMAX.
+    """
+    train_status_placeholder = st.empty()
+    
+    with train_status_placeholder.status("Training model...", expanded=True) as train_status:
+        train_warning_msg = st.warning("It will take some time to train the model and may lead to app crash because of limited resources on Cloud.")
+        
+        model_fit = SARIMAX(
+            df_product[value_to_plot],
+            exog=df_product['holidays_count'],
+            enforce_stationarity=False,
+            enforce_invertibility=False,
+            order=params["order"],
+            seasonal_order=params["seasonal_order"]
+        ).fit()
+        
+        train_warning_msg.empty()
+        train_status.update(label="Model trained successfully!", state="complete")
+        train_status_placeholder.empty()
+        
+    return model_fit
+
+def prepare_forecasting_df(df_product, forecast_horizon, freq, timestamp_col, resolution):
+    """
+    Prepares the forecasting DataFrame by generating future timestamps and adding holiday counts.
+    
+    Parameters:
+        df_product (pd.DataFrame): The dataset containing the time series.
+        forecast_horizon (int): Number of future periods to forecast.
+        freq (str): Frequency of the time series data.
+        timestamp_col (str): The name of the timestamp column.
+        resolution (str): Resolution for holiday adjustments.
+    
+    Returns:
+        pd.DataFrame: The forecasting DataFrame with holidays count.
+    """
+    forecast_dates = pd.date_range(start=df_product.index[-1], periods=forecast_horizon + 1, freq=freq)[1:]
+    forecasting_df = pd.DataFrame({timestamp_col: forecast_dates})
+    
+    holidays_list = get_holidays_list(forecast_dates[0], forecast_dates[-1])
+    forecasting_df = add_holidays_count(sales_df=forecasting_df, resolution=resolution, holidays_list=holidays_list)
+    
+    return forecasting_df
+
+def generate_forecast(model_fit, forecasting_df, forecast_horizon, confidence_level):
+    """
+    Generates a forecast using a trained SARIMAX model and updates the Streamlit UI with status messages.
+    
+    Parameters:
+        model_fit: The trained SARIMAX model.
+        forecasting_df (pd.DataFrame): The forecasting DataFrame with holidays count.
+        forecast_horizon (int): Number of future periods to forecast.
+        confidence_level (float): Confidence level for prediction intervals.
+    
+    Returns:
+        pd.DataFrame: The forecast DataFrame with mean forecast and confidence intervals.
+    """
+    fit_status_placeholder = st.empty()
+    
+    with fit_status_placeholder.status("Forecast loading...", expanded=True) as fit_status:
+        fit_warning_msg = st.warning("It will take some time to forecast and may lead to app crash because of limited resources on Cloud.")
+        
+        forecast_result = model_fit.get_forecast(
+            steps=forecast_horizon,
+            exog=forecasting_df['holidays_count'],
+            dynamic=True,
+        )
+        
+        fit_warning_msg.empty()
+        fit_status.update(label="Forecasting loaded successfully!", state="complete")
+        fit_status_placeholder.empty()
+        
+    forecast_df = forecast_result.summary_frame(alpha=1 - confidence_level)
+    forecast_df = forecast_df[["mean", "mean_ci_lower", "mean_ci_upper"]]
+    forecast_df.columns = ["forecast", "lower_bound", "upper_bound"]
+    
+    return forecast_df
+
+def generate_weekly_forecast(df_product, value_to_plot, params, forecast_horizon, confidence_level, timestamp_col="date"):
+    """
+    Generates a weekly forecast by first predicting daily and monthly values, then resampling to weekly using both forecasts.
+    
+    Parameters:
+        df_product (pd.DataFrame): The dataset containing the time series.
+        value_to_plot (str): The target variable to model.
+        params (dict): Dictionary containing 'order' and 'seasonal_order' for SARIMAX.
+        forecast_horizon (int): Number of future periods to forecast.
+        confidence_level (float): Confidence level for prediction intervals.
+        timestamp_col (str): The name of the timestamp column.
+    
+    Returns:
+        pd.DataFrame: The final weekly forecast DataFrame.
+    """
+    # Train model on daily data
+    daily_model = train_sarimax_model(df_product, value_to_plot, params)
+    daily_forecasting_df = prepare_forecasting_df(df_product, forecast_horizon * 7, "D", timestamp_col, "daily")
+    daily_forecast = generate_forecast(daily_model, daily_forecasting_df, forecast_horizon * 7, confidence_level)
+    daily_forecast[timestamp_col] = daily_forecasting_df[timestamp_col].values
+    
+    # Train model on monthly data
+    monthly_model = train_sarimax_model(df_product.resample("M").sum(), value_to_plot, params)
+    monthly_forecasting_df = prepare_forecasting_df(df_product, forecast_horizon // 4, "M", timestamp_col, "monthly")
+    monthly_forecast = generate_forecast(monthly_model, monthly_forecasting_df, forecast_horizon // 4, confidence_level)
+    monthly_forecast[timestamp_col] = monthly_forecasting_df[timestamp_col].values
+    
+    # Resample daily forecast to weekly (starting from Monday)
+    weekly_forecast_from_daily = daily_forecast.set_index(timestamp_col).resample("W-MON").sum().reset_index()
+    
+    # Resample monthly forecast to weekly (starting from Monday)
+    weekly_forecast_from_monthly = monthly_forecast.set_index(timestamp_col).resample("W-MON").interpolate().reset_index()
+    
+    # Combine both forecasts (averaging them for better accuracy)
+    final_weekly_forecast = weekly_forecast_from_daily.merge(
+        weekly_forecast_from_monthly, on=timestamp_col, suffixes=("_daily", "_monthly")
+    )
+    final_weekly_forecast["forecast"] = (
+        final_weekly_forecast["forecast_daily"] + final_weekly_forecast["forecast_monthly"]
+    ) / 2
+    final_weekly_forecast["lower_bound"] = (
+        final_weekly_forecast["lower_bound_daily"] + final_weekly_forecast["lower_bound_monthly"]
+    ) / 2
+    final_weekly_forecast["upper_bound"] = (
+        final_weekly_forecast["upper_bound_daily"] + final_weekly_forecast["upper_bound_monthly"]
+    ) / 2
+    
+    return final_weekly_forecast[[timestamp_col, "forecast", "lower_bound", "upper_bound"]]
+
+
 def forecast_sales(sales_df, 
                     product_or_product_group, 
                     product_to_forecast,
@@ -72,63 +208,12 @@ def forecast_sales(sales_df,
         if model_file_name in os.listdir(models_folder) and not validation_forecast:
             model_fit = joblib.load(models_folder/model_file_name)
         else:
-            train_status_placeholder = st.empty()
-            with train_status_placeholder.status("Training model...", expanded=True) as train_status:
-                train_warning_msg = st.warning("It will take some time to train the model and may lead to app crash because of limited resources on Cloud.")
-                model_fit = SARIMAX(df_product[value_to_plot], 
-                                    exog=df_product['holidays_count'],
-                                    enforce_stationarity=False, 
-                                    enforce_invertibility=False, 
-                                    order=params["order"], 
-                                    seasonal_order=params["seasonal_order"]).fit()
-                train_warning_msg.empty()
-                train_status.update(label="Model trained successfully!", state="complete")
-                train_status_placeholder.empty()
+            model_fit = train_sarimax_model(df_product, value_to_plot, params)
             # if not validation_forecast:
             #     joblib.dump(model_fit,models_folder/model_file_name , compress=3)
-        forecast_dates = pd.date_range(start=df_product.index[-1], periods=forecast_horizon + 1, freq=freq)[1:]       
-        forecasting_df = pd.DataFrame({timestamp_col :forecast_dates})
-
-
-        holidays_list = get_holidays_list(forecast_dates[0],forecast_dates[-1])
-
-        forecasting_df = add_holidays_count(sales_df=forecasting_df,
-                                              resolution=resolution,
-                                              holidays_list= holidays_list)
-
+        forecasting_df = prepare_forecasting_df(df_product, forecast_horizon, freq, timestamp_col, resolution)
         
-
-        fit_status_placeholder = st.empty()
-        with fit_status_placeholder.status("Forecast loading...", expanded=True) as fit_status:
-            fit_warning_msg = st.warning("It will take some time to forecast and may lead to app crash because of limited resources on Cloud.")
-
-            forecast_result = model_fit.get_forecast(steps=forecast_horizon,
-                                                 exog=forecasting_df['holidays_count'],
-                                                 dynamic=True,)
-            fit_warning_msg.empty()
-            fit_status.update(label="Forecasting loaded successfully!", state="complete")
-            fit_status_placeholder.empty()
-        forecast_df = forecast_result.summary_frame(alpha=1 - confidence_level)
-
-
-        
-        # try:
-
-        #     model_fit = SARIMAX(df_product[value_to_plot],
-        #                         order=params["order"],
-        #                         seasonal_order=params["seasonal_order"],
-        #                         enforce_stationarity=False,
-        #                         enforce_invertibility=False).fit()
-        # except Exception as e:
-
-        #     model_fit = SARIMAX(df_product[value_to_plot],
-        #                         order=params["order"],
-        #                         enforce_stationarity=False,
-        #                         enforce_invertibility=False).fit()
-
-        forecast_df = forecast_df[["mean", "mean_ci_lower", "mean_ci_upper"]]
-        forecast_df.columns = ["forecast", "lower_bound", "upper_bound"]
-    
+        forecast_df = generate_forecast(model_fit, forecasting_df, forecast_horizon, confidence_level)
     elif model == "random_forest":
         df_product["time_index"] = range(len(df_product))
         df_product["day_of_week"] = df_product.index.dayofweek  # Add day of week feature

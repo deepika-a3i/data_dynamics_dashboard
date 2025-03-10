@@ -739,7 +739,7 @@ def create_plot_sales_figure(
         #     layer="below",
         #     line_width=0,
         # )
-        # fig.update_layout(width=2000,  height=1000 )
+    fig.update_layout(hovermode = "x unified" )
 
     return (
         fig,
