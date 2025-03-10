@@ -353,7 +353,7 @@ def plot_forecast(sales_df,
     from_date = forecast_df[timestamp_col].min().strftime('%Y-%m-%d')
     to_date = forecast_df[timestamp_col].max().strftime('%Y-%m-%d')
     fig.update_layout(title=f"Forecasted {value_to_plot} for {product_or_product_group} | {from_date} - {to_date}", 
-
+                      hovermode = "x unified",
                       yaxis_title=value_to_plot, 
                       legend=dict(x=1, y=0.5), 
                       xaxis=dict(range=[cutoff_date, forecast_df[timestamp_col].max()]))
