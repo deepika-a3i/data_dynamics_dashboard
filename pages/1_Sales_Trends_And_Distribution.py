@@ -6,7 +6,8 @@ import streamlit as st
 from data_processing import create_plot_sales_figure
 from data_processing import group_by_day_week_month
 from data_processing import create_weekdays_box_plot
-from data_processing import style_sidebar
+
+from data_processing import style_dashboard
 import plotly.graph_objects as go
 
 
@@ -158,7 +159,7 @@ def download_csv_files():
         
 
 def main():
-    style_sidebar()
+    style_dashboard()
     init_ddd()
 
     st.markdown("# Sales Trends & Distribution")
@@ -184,7 +185,6 @@ def main():
                 get_start_and_end_dates_all()
                 with st.sidebar:
                     select_plot_options_common()
-
 
                 (
                     fig,

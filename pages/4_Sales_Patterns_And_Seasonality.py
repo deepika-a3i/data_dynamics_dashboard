@@ -3,7 +3,8 @@ import streamlit as st
 
 from data_processing import create_weekend_sales_figure
 from data_processing import group_by_day_week_month
-from data_processing import style_sidebar
+
+from data_processing import style_dashboard
 
 from Data_Portal import init_ddd
 from Data_Portal import select_plot_options_common
@@ -72,7 +73,7 @@ def show_best_products_in_trend():
 
 
 def main():
-    style_sidebar()
+    style_dashboard()
     init_ddd()
 
     if st.session_state.is_running_on_streamlit_cloud:

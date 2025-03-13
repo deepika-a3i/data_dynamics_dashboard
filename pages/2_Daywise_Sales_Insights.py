@@ -3,9 +3,8 @@ import streamlit as st
 
 from data_processing import group_by_day_week_month
 from data_processing import create_weekdays_box_plot
-from data_processing import style_sidebar
 
-
+from data_processing import style_dashboard
 
 
 from Data_Portal import init_ddd
@@ -37,7 +36,7 @@ def show_box_plots():
         
 
 def main():
-    style_sidebar()
+    style_dashboard()
     init_ddd()
 
     st.markdown("# Sales Variability: Monday to Sunday")
