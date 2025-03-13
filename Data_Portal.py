@@ -5,7 +5,8 @@ import polars as pl
 
 from data_processing import load_sales_data
 from data_processing import find_plot_start_and_end_date
-from data_processing import style_sidebar
+
+from data_processing import style_dashboard
 import pycountry
 from holidays import country_holidays
 from holidays import utils as holidays_utils
@@ -193,13 +194,13 @@ def select_plot_options_common(forecasting=False):
 
         st.session_state.selection_mode = st.segmented_control(
             "Select Elements to Plot",
-            ["Manually", "Top or bottom"],
+            ["Manually", "Top or Bottom"],
             default=default_selection_mode,
 
         )
 
 
-        if st.session_state.selection_mode == "Top or bottom":
+        if st.session_state.selection_mode == "Top or Bottom":
 
             if st.session_state.number_of_products_to_plot is not None:
                 default_number_of_products_to_plot = st.session_state.number_of_products_to_plot
@@ -207,7 +208,7 @@ def select_plot_options_common(forecasting=False):
                 default_number_of_products_to_plot = 5
 
             if st.session_state.top_or_bottom is not None:
-                default_top_or_bottom = ["top", "bottom"].index(st.session_state.top_or_bottom)
+                default_top_or_bottom = ["Top", "Bottom"].index(st.session_state.top_or_bottom)
             else: 
                 default_top_or_bottom = 0
             st.session_state.number_of_products_to_plot = st.slider(
@@ -218,7 +219,7 @@ def select_plot_options_common(forecasting=False):
                 value=default_number_of_products_to_plot,
             )
             st.session_state.top_or_bottom = st.selectbox(
-                "Top or Bottom", ["top", "bottom"], index=default_top_or_bottom
+                "Top or Bottom", ["Top", "Bottom"], index=default_top_or_bottom
             )
             st.session_state.categories_to_plot = None
         else:
@@ -249,7 +250,7 @@ def select_plot_options_common(forecasting=False):
                 default=default_categories_to_plot,
             )
             st.session_state.number_of_products_to_plot = None
-            st.session_state.top_or_bottom = "top"
+            st.session_state.top_or_bottom = "Top"
 
         #if not forecasting:
         #    st.session_state.drop_products_with_zero_sales = st.checkbox(
@@ -451,7 +452,7 @@ def data_loading(pl_df):
 
 
 def main():
-    style_sidebar()
+    style_dashboard()
     init_ddd()
     if not st.session_state.authenfied_user and st.session_state.use_athentication:
 
