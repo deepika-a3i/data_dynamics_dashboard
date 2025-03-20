@@ -5,9 +5,7 @@ import streamlit as st
 
 from data_processing import create_plot_sales_figure
 from data_processing import group_by_day_week_month
-from data_processing import create_weekdays_box_plot
-
-from data_processing import style_dashboard
+from dashboard_style import style_dashboard
 import plotly.graph_objects as go
 
 
@@ -41,6 +39,7 @@ def compute_others(sum_df):
 
 def show_csvs():
     st.markdown("## Trends & Distribution Reports")
+    
     sum_df = (
         st.session_state.displayed_df[
             [col for col in st.session_state.displayed_df if "Timestamp" not in col]
@@ -77,20 +76,22 @@ def show_csvs():
             on=st.session_state.product_or_product_group,
             how="left",
         )
-    df_to_show["start_date"] = df_to_show["start_date"].dt.strftime('%Y-%m-%d')
-    df_to_show["end_date"] = df_to_show["end_date"].dt.strftime('%Y-%m-%d')
+    df_to_show["start_date"] = pd.to_datetime(df_to_show["start_date"]).dt.strftime('%Y-%m-%d')
+    df_to_show["end_date"] = pd.to_datetime(df_to_show["end_date"]).dt.strftime('%Y-%m-%d')
     desired_order = ["start_date", "end_date"] + [col for col in df_to_show.columns if col not in ["start_date", "end_date"]]
-    st.write(df_to_show[desired_order])
+    st.dataframe(df_to_show[desired_order])
+    # st.markdown("*Note: Others represent everything other than selected option.*")
     st.markdown("#### Sales Proportion Report")
     df_to_show = sum_df[["start_date", "end_date"] +
         [st.session_state.product_or_product_group]
         + [col for col in sum_df.columns if col.endswith("_%")]
         + [ "holidays_count"]
     ]
-    df_to_show["start_date"] = df_to_show["start_date"].dt.strftime('%Y-%m-%d')
-    df_to_show["end_date"] = df_to_show["end_date"].dt.strftime('%Y-%m-%d')
+    df_to_show["start_date"] = pd.to_datetime(df_to_show["start_date"]).dt.strftime('%Y-%m-%d')
+    df_to_show["end_date"] = pd.to_datetime(df_to_show["end_date"]).dt.strftime('%Y-%m-%d')
     
-    st.write(df_to_show)
+    st.dataframe(df_to_show)
+    st.markdown("*Note: Others represent everything other than selected option.*")
 
 
 def show_pie_charts():
@@ -207,8 +208,9 @@ def main():
                     holidays_list=st.session_state.holidays_list,
                     markers=st.session_state.markers,
                     line_shape=st.session_state.line_shape,
+                    show_holidays = st.session_state.bank_holidays,
                 )
-
+                
                 st.plotly_chart(fig, use_container_width=True)
 
                 show_csvs()

@@ -7,8 +7,7 @@ import streamlit as st
 from data_processing import group_by_day_week_month
 from data_processing import add_holidays_count
 from data_processing import get_sorted_list_of_products
-
-from data_processing import style_dashboard
+from dashboard_style import style_dashboard
 from Data_Portal import init_ddd
 from Data_Portal import select_plot_options_common
 from Data_Portal import select_country_options
@@ -175,7 +174,7 @@ def main():
                     
                     st.plotly_chart(st.session_state.forecast_fig, use_container_width=True)
                     st.markdown("#### Forecasted Reports")
-                    st.write(st.session_state.forecast_df)
+                    st.dataframe(st.session_state.forecast_df)
                     
 
 

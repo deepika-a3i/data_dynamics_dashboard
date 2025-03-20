@@ -3,16 +3,31 @@ import streamlit as st
 
 from data_processing import group_by_day_week_month
 from data_processing import create_weekdays_box_plot
+from data_processing import create_weekdays_bar_plot
 
-from data_processing import style_dashboard
+from dashboard_style import style_dashboard
 
 
 from Data_Portal import init_ddd
 from Data_Portal import select_plot_options_common
 from Data_Portal import get_start_and_end_dates_all
 
+def show_bar_plots():
+    bar_plot_figs_dict = create_weekdays_bar_plot(
+        st.session_state.df_dict,
+        value_to_plot=st.session_state.value_to_plot,
+        product_or_product_group=st.session_state.product_or_product_group,
+        categories_to_plot=st.session_state.categories_to_plot,
+        start_date=st.session_state.start_date,
+        end_date=st.session_state.end_date,
+        )
+    bar_plot_category = st.segmented_control("",st.session_state.categories_to_plot, default=st.session_state.categories_to_plot[0] )
+    st.session_state.selected_bar_plot = bar_plot_category
+    st.plotly_chart(bar_plot_figs_dict[st.session_state.selected_bar_plot], use_container_width=True)
+
 
 def show_box_plots():
+    st.markdown("### Box Plot Explorer: Select & Analyze")
     box_plot_figs_dict = create_weekdays_box_plot(
         st.session_state.df_dict,
         value_to_plot=st.session_state.value_to_plot,
@@ -24,7 +39,25 @@ def show_box_plots():
     box_plot_category = st.segmented_control("",st.session_state.categories_to_plot, default=st.session_state.categories_to_plot[0] )
     st.session_state.selected_box_plot = box_plot_category
     st.plotly_chart(box_plot_figs_dict[st.session_state.selected_box_plot], use_container_width=True)
+    # Additional Notes
+    st.info("📌 **Tip**: Hover over the plot points to see exact values and outliers.")
+    # st.markdown("### 📊 How to Read and Interpret a Box Plot")
 
+    st.markdown("""
+    #### Understanding a Box Plot
+    Hover over the 💡 icon for a quick guide.
+    """)
+
+    # Hoverable Tooltip using Streamlit Expander
+    with st.expander("💡 What is a Box Plot?"):
+        st.markdown("""
+        - **📏 Median (Q2 - Thick Line in the Box)**: The middle value of the dataset.
+        - **🔳 Interquartile Range (IQR - The Box)**: Middle **50% of data** (between Q1 and Q3).
+        - **📉 Whiskers**: Extend to the lowest and highest non-outlier values.
+        - **❌ Outliers (Dots beyond whiskers)**: Unusually high or low values.
+
+        """)
+    
 # def show_additional_plots():
 #     st.markdown("#### Toggle Between Box Plot and Pie Charts")
 #     selected_plot = st.segmented_control("", ["Box Plot", "Pie Chart"], default="Box Plot")
@@ -63,8 +96,15 @@ def main():
                 with st.sidebar:
                     select_plot_options_common()
 
+                # selected_plot = st.segmented_control("", ["Box Plot", "Bar Chart"], default="Box Plot")
+                # st.session_state.selected_plot = 'box_plot' if selected_plot == "Box Plot" else 'bar_chart'
+                # if st.session_state.selected_plot == 'bar_chart':
+                #     show_bar_plots()
+                # elif st.session_state.selected_plot == 'box_plot':
+                #     show_box_plots()
+                
+
 
                 show_box_plots()
-
-
+                
 main()
