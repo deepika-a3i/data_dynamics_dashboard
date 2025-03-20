@@ -186,7 +186,7 @@ def main():
                 get_start_and_end_dates_all()
                 with st.sidebar:
                     select_plot_options_common()
-
+                
                 (
                     fig,
                     st.session_state.displayed_df,
