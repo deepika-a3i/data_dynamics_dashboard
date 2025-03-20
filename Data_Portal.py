@@ -6,7 +6,7 @@ import polars as pl
 from data_processing import load_sales_data
 from data_processing import find_plot_start_and_end_date
 
-from data_processing import style_dashboard
+from dashboard_style import style_dashboard
 import pycountry
 from holidays import country_holidays
 from holidays import utils as holidays_utils
@@ -14,7 +14,7 @@ from holidays import utils as holidays_utils
 supported_countries = ["Austria", "France", "Germany"]
 
 st.set_page_config(
-    page_title="Hello",
+    page_title="Data Dynamics",
     page_icon="👋",
 )
 
@@ -49,11 +49,11 @@ def select_period_options():
     if st.session_state.period_selection_mode is not None:
         default = st.session_state.period_selection_mode
     else:
-        default ="Last Months"
+        default ="Last x Months"
 
     st.session_state.period_selection_mode = st.segmented_control(
         "Select period by",
-        ["Dates", "Last Months"],
+        ["Dates", "Last x Months"],
         default=default,
         
     )
@@ -62,7 +62,7 @@ def select_period_options():
 
     number_of_months_max = int((st.session_state.end_date_all - st.session_state.start_date_all).days / 30) + 1
 
-    if st.session_state.period_selection_mode  == "Last Months":
+    if st.session_state.period_selection_mode  == "Last x Months":
         if st.session_state.number_of_months is not None:
             default = st.session_state.number_of_months
         else:
@@ -87,17 +87,15 @@ def select_period_options():
         else:
             default_start = st.session_state.start_date_all
             default_end = st.session_state.end_date_all
-        col11, col12 = st.columns(2)
-        with col11:
-            st.session_state.start_date = st.date_input(
-                "Start Date", min_value=st.session_state.start_date_all, 
-                max_value=st.session_state.end_date_all, value=default_start
-            )
-        with col12:
-            st.session_state.end_date = st.date_input(
-                "End Date", min_value=st.session_state.start_date_all, 
-                max_value=st.session_state.end_date_all, value=default_end
-            )
+        # with st.expander("Select Date Range"):
+        st.session_state.start_date = st.date_input(
+            "Start Date", min_value=st.session_state.start_date_all, 
+            max_value=st.session_state.end_date_all, value=default_start
+        )
+        st.session_state.end_date = st.date_input(
+            "End Date", min_value=st.session_state.start_date_all, 
+            max_value=st.session_state.end_date_all, value=default_end
+        )
 
 
 
@@ -170,7 +168,7 @@ def select_plot_options_common(forecasting=False):
             st.session_state.categorical_columns_of_interest,
             default=default,
         )
-   
+
 
         if st.session_state.value_to_plot is not None:
             default = st.session_state.value_to_plot
@@ -225,7 +223,7 @@ def select_plot_options_common(forecasting=False):
         else:
             df = st.session_state.df_dict[list(st.session_state.df_dict.keys())[0]]
             df = df[st.session_state.product_or_product_group]
-          
+            
             categories_to_select_from = st.session_state.pl_df.select(
                     [st.session_state.product_or_product_group]
                 ).unique(
@@ -240,7 +238,7 @@ def select_plot_options_common(forecasting=False):
 
                 default_categories_to_plot = st.session_state.categories_to_plot
                 default_categories_to_plot = [cat for cat in default_categories_to_plot  
-                                              if cat in categories_to_select_from ]
+                                                if cat in categories_to_select_from ]
             else: 
                 default_categories_to_plot = categories_to_select_from[0]
 
@@ -252,41 +250,41 @@ def select_plot_options_common(forecasting=False):
             st.session_state.number_of_products_to_plot = None
             st.session_state.top_or_bottom = "Top"
 
-        #if not forecasting:
-        #    st.session_state.drop_products_with_zero_sales = st.checkbox(
-        #    "Hide products with zero sales", value=True
-        #    )
+            #if not forecasting:
+            #    st.session_state.drop_products_with_zero_sales = st.checkbox(
+            #    "Hide products with zero sales", value=True
+            #    )
     st.session_state.resolution = st.segmented_control(
-        "Choose a resolution",
+        "Choose a resolution period",
         st.session_state.df_dict.keys(),
         default=list(st.session_state.df_dict.keys())[0],
     )
-    col1, col2 = st.columns(2)
-    with col1:
-        select_period_options()
+    # col1, col2 = st.columns(2)
+    # with col1:
+    select_period_options()
 
-        #st.session_state.markers = st.checkbox("Show_markers", value=True)
-        #st.session_state.line_shape = st.segmented_control(
-        #    "type of selection",
-        #    ["Step Plot", "Linear Plot"],
-        #    default="Linear Plot",
-        #    label_visibility="hidden",
-        #)
-        
-        #if st.session_state.line_shape == "Step Plot":
-        #    st.session_state.line_shape = "hv"
-        #else:
-        #    st.session_state.line_shape = "linear"
+    #st.session_state.markers = st.checkbox("Show_markers", value=True)
+    #st.session_state.line_shape = st.segmented_control(
+    #    "type of selection",
+    #    ["Step Plot", "Linear Plot"],
+    #    default="Linear Plot",
+    #    label_visibility="hidden",
+    #)
+    
+    #if st.session_state.line_shape == "Step Plot":
+    #    st.session_state.line_shape = "hv"
+    #else:
+    #    st.session_state.line_shape = "linear"
 
-    with col2:
+    # with col2:
 
 
 
-        bank_holidays = st.checkbox("Display Bank Holidays", value=True)
+    st.session_state.bank_holidays = st.toggle("Display Bank Holidays", value=st.session_state.bank_holidays)
 
-        if bank_holidays:
-            select_country_options()
-            get_holidays_list(st.session_state.start_date_all,st.session_state.end_date_all)
+    if st.session_state.bank_holidays:
+        select_country_options()
+        get_holidays_list(st.session_state.start_date_all,st.session_state.end_date_all)
 
 def init_ddd():
     if is_running_on_streamlit_cloud():
@@ -372,7 +370,10 @@ def init_ddd():
         st.session_state.selected_plot = None
     if 'selected_box_plot' not in st.session_state:
         st.session_state.selected_box_plot = None   
-
+    if 'selected_bar_plot' not in st.session_state:
+        st.session_state.selected_bar_plot = None
+    if "bank_holidays" not in st.session_state:
+        st.session_state.bank_holidays = True
 
 
 def authenticate_user():

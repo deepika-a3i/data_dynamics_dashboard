@@ -8,216 +8,6 @@ from datetime import timedelta
 import streamlit as st
 import plotly.colors as pc
 
-# def style_sidebar():
-#     st.markdown("""
-#         <style>
-#             /* Sidebar container */
-#             section[data-testid="stSidebar"] {
-#                 background-color: transparent !important; /* Fully transparent */
-#                 padding: 20px;
-#                 width: 500px !important; /* Slightly wider */
-#                 box-shadow: none !important; /* No shadow */
-#                 border-right: 2px solid rgba(255, 75, 75, 0.8); /* Red accent border */
-#             }
-
-#             /* Hide the sidebar toggle (>, <) buttons */
-#             button[title="Expand sidebar"], 
-#             button[title="Collapse sidebar"] {
-#                 display: none !important;
-#             }
-
-#             /* Sidebar text */
-#             section[data-testid="stSidebar"] * {
-#                 font-size: 14px !important; /* Reduced font size */
-#                 font-weight: 400 !important;
-#                 color: #262730 !important; /* Dark gray text for readability */
-#             }
-
-#             /* Sidebar headers */
-#             section[data-testid="stSidebar"] h1, 
-#             section[data-testid="stSidebar"] h2, 
-#             section[data-testid="stSidebar"] h3 {
-#                 color: #FF4444 !important; /* Streamlit red */
-#                 font-weight: bold;
-#                 font-size: 14px !important;
-#             }
-
-#             /* Sidebar buttons */
-#             section[data-testid="stSidebar"] button {
-#                 /* background-color: #FF4B4B !important;  Streamlit red */
-#                 color: white !important;
-#                 border-radius: 6px !important;
-#                 border: none !important;
-#                 font-size: 14px !important;
-#                 padding: 8px 14px !important;
-#             }
-
-#             /* Hover effect for buttons */
-#             section[data-testid="stSidebar"] button:hover {
-#                 background-color: #FFBBBB !important;
-#             }
-
-#             /* Make segmented control background transparent */
-#             div[data-baseweb="segmented-control"] {
-#                 background-color: transparent !important;
-#                 border: none !important;
-#             }
-
-#             /* Ensure segmented control buttons match theme */
-#             div[data-baseweb="segmented-control"] div {
-#                 background-color: transparent !important;
-#                 color: #262730 !important; /* Dark text */
-#                 font-weight: bold !important;
-#             }
-
-#             /* Highlight active segmented control button */
-#             div[data-baseweb="segmented-control"] div[aria-selected="true"] {
-#                 background-color: rgba(255, 75, 75, 0.4) !important; /* Darker red tint */
-#                 border: 2px solid rgba(255, 75, 75, 0.8) !important; /* Darker red border */
-#                 border-radius: 6px !important;
-#             }
-#             /* Make selected multiselect options a lighter shade */
-#             div[data-baseweb="tag"] {
-#                 background-color: rgba(255, 75, 75, 0.2) !important; /* Lighter red */
-#                 color: black !important;
-#                 border-radius: 4px !important;
-#             }
-
-#         </style>
-#     """, unsafe_allow_html=True)
-
-def style_dashboard():
-    st.markdown("""
-        <style>
-        /* --- GLOBAL STYLING FOR PASTEL IT-THEMED DASHBOARD --- */
-        html, body, [data-testid="stAppViewContainer"] {
-            background-color: white !important; /* Simple white background */
-            color: #374151 !important; /* Dark gray for contrast */
-            font-family: "Inter", sans-serif !important;
-        }
-
-        /* --- SIDEBAR STYLING --- */
-        section[data-testid="stSidebar"] {
-            background-color: #F2F2F2 !important; /* Soft gray-blue */
-            padding: 20px;
-            width: 450px !important;
-            border-right: 3px solid #A5B4FC !important; /* Soft purple accent */
-        }
-
-        /* Sidebar Text */
-        section[data-testid="stSidebar"] * {
-            font-size: 15px !important;
-            font-weight: 500 !important;
-            color: #374151 !important; /* Dark gray for readability */
-        }
-
-        /* Sidebar Headers */
-        section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-            color: #191970 !important; /* midnight blue */
-            font-weight: bold;
-        }
-
-        /* Sidebar Buttons */
-        section[data-testid="stSidebar"] button {
-            background-color: #FAFAFA !important; /* Light pastel purple */
-            color: #1A1A1A !important;
-            font-weight: 700;
-            border-radius: 6px;
-            padding: 10px 20px;
-            transition: all 0.3s ease-in-out;
-        }
-
-        /* Sidebar Button Hover */
-        section[data-testid="stSidebar"] button:hover {
-            background-color: #D8D8D8 !important; /* Bright pastel blue */
-            color: #F1F5F9 !important; /* Light gray */
-        }
-
-        /* --- WIDGET STYLING --- */
-
-        /* Buttons */
-        button {
-            background-color: #DDDDDD !important; /* Soft blue */
-            color: #1E293B !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-            padding: 10px 16px !important;
-            transition: all 0.3s ease-in-out;
-        }
-
-        /* Button Hover */
-        button:hover {
-            background-color: #1A1A1A !important; /* Deeper pastel blue */
-            color: #F8FAFC !important;
-        }
-
-        /* Segmented Control */
-        div[data-baseweb="segmented-control"] {
-            background-color: transparent !important;
-            border: none !important;
-        }
-
-        /* Segmented Control Default */
-        div[data-baseweb="segmented-control"] div {
-            background-color: #FFE4FF !important; /* Soft pastel peach */
-            color: #1E293B !important;
-            font-weight: 600 !important;
-            border-radius: 6px !important;
-        }
-
-        /* Segmented Control Selected */
-        div[data-baseweb="segmented-control"] div[aria-selected="true"] {
-            background-color: #FFB6FF !important; /* Soft pastel pink */
-            color: white !important;
-            font-weight: bold !important;
-            border: 2px solid #FF69B4 !important;
-            border-radius: 8px !important;
-        }
-
-        /* Multi-Select Default */
-        div[data-baseweb="select"] div {
-            background-color: #F3F6FF !important; /* Soft pastel green */
-            color: #374151 !important;
-            font-weight: 600;
-        }
-
-        /* Multi-Select Selected */
-        div[data-baseweb="tag"] {
-            background-color: #98FAFF !important; /* Soft light green */
-            color: white !important;
-            font-weight: 700;
-            border: 2px solid #2E8B57 !important;
-            border-radius: 6px !important;
-            padding: 6px 10px !important;
-        }
-
-        /* Slicer Default */
-        div[data-baseweb="slider"] {
-            color: #374151 !important;
-        }
-
-        /* Slicer Active */
-        div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #1A1A1A !important; /* Soft pastel purple */
-            border-radius: 50% !important;
-            border: 3px solid white !important;
-        }
-
-        /* --- TABLE STYLING --- */
-        .stDataFrame {
-            border: 2px solid #A5B4FC !important;
-            border-radius: 10px !important;
-        }
-
-        /* --- CHART STYLING --- */
-        .stChart {
-            background-color: #F1F1F1 !important;
-            border-radius: 10px !important;
-            padding: 15px !important;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        </style>
-    """, unsafe_allow_html=True)
 
 def get_lin_regression_trend(sales_df,
                             resolution,
@@ -716,6 +506,47 @@ def create_weekdays_box_plot(
     return box_plot_figs_dict
 
 
+def create_weekdays_bar_plot(
+    df_dict,
+    resolution="day",
+    value_to_plot="gross_price",
+    product_or_product_group="product",
+    categories_to_plot=None,
+    start_date=None,
+    end_date=None,
+):
+    sales_df = df_dict[resolution][product_or_product_group]
+    timestamp_column = f'Timestamp_{resolution}'
+    sales_df[timestamp_column] = pd.to_datetime(sales_df[timestamp_column])
+    sales_df = sales_df[
+        (sales_df[timestamp_column] >= pd.to_datetime(start_date))
+        & (sales_df[timestamp_column] <= pd.to_datetime(end_date))
+    ]
+    from_date = sales_df[timestamp_column].min().strftime('%Y-%m-%d')
+    to_date = sales_df[timestamp_column].max().strftime('%Y-%m-%d')
+    sales_df["weekday"] = sales_df[timestamp_column].dt.day_name()
+    sales_df = sales_df[sales_df[product_or_product_group].isin(categories_to_plot)]
+    bar_plot_figs_dict = {}
+    
+    for category in categories_to_plot:
+        # Step 1: Aggregate total sales per day per weekday
+        cat_sales_df = sales_df[sales_df[product_or_product_group] == category]
+        df_grouped = cat_sales_df.groupby("weekday")[value_to_plot].agg(['mean', 'std']).reset_index()
+        
+        # Step 2: Create bar plot with error bars (std deviation)
+        fig = px.bar(df_grouped, x="weekday", y="mean", error_y="std",
+                    title=f"Average Sales by Weekday {value_to_plot} for {category} | {from_date} - {to_date}",
+                    labels={"weekday": "Weekday", "mean": "Average Sales"},
+                    category_orders={"weekday": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]})
+        
+        # Adjust figure size
+        fig.update_layout(width=1200, height=600)
+        #  Add mean values as text labels
+        # fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
+        bar_plot_figs_dict.update({category: fig})
+    
+    return bar_plot_figs_dict
+
 def create_plot_sales_figure(
     df_dict,
     resolution="week",
@@ -730,6 +561,7 @@ def create_plot_sales_figure(
     holidays_list=[],
     line_shape="linear",
     markers=True,
+    show_holidays = True
 ):
 
     sales_df = df_dict[resolution][product_or_product_group]
@@ -832,32 +664,33 @@ def create_plot_sales_figure(
     
     # Add vertical lines
     first_holiday = True
-    for ts in specific_timestamps:
-        fig.add_trace(go.Scatter(
-            x=[pd.Timestamp(ts), pd.Timestamp(ts)],  # Vertical line
-            y=[0, sales_df[value_to_plot].max()],  # Full height of plot
-            mode="lines",
-            line=dict(color="gold", width=2),
-            name="Holiday" if first_holiday else None,  # Show in legend only once
-            showlegend=first_holiday,  # Only first trace appears in legend
-            legendgroup="holidays"  # Group all traces under "holidays"
-        ))
-        first_holiday = False  # Set to False after first trace
-        # fig.add_shape(
-        #     type="line",
-        #     x0=pd.Timestamp(ts),
-        #     x1=pd.Timestamp(ts),
-        #     y0=0,
-        #     y1=sales_df[value_to_plot].max() * 1,  # Adjust y-range as needed
-        #     line=dict(color=holiday_color),  # ash="dash")
-        # )
-    # Add a manual legend entry for the holiday
-    # fig.add_trace(go.Scatter(
-    #     x=[None], y=[None],  # Invisible trace for legend
-    #     mode="lines",
-    #     line=dict(color=holiday_color, width=2),
-    #     name="Holiday",
-    # ))
+    if show_holidays:
+        for ts in specific_timestamps:
+            fig.add_trace(go.Scatter(
+                x=[pd.Timestamp(ts), pd.Timestamp(ts)],  # Vertical line
+                y=[0, sales_df[value_to_plot].max()],  # Full height of plot
+                mode="lines",
+                line=dict(color="gold", width=2),
+                name="Holiday" if first_holiday else None,  # Show in legend only once
+                showlegend=first_holiday,  # Only first trace appears in legend
+                legendgroup="holidays"  # Group all traces under "holidays"
+            ))
+            first_holiday = False  # Set to False after first trace
+            # fig.add_shape(
+            #     type="line",
+            #     x0=pd.Timestamp(ts),
+            #     x1=pd.Timestamp(ts),
+            #     y0=0,
+            #     y1=sales_df[value_to_plot].max() * 1,  # Adjust y-range as needed
+            #     line=dict(color=holiday_color),  # ash="dash")
+            # )
+        # Add a manual legend entry for the holiday
+        # fig.add_trace(go.Scatter(
+        #     x=[None], y=[None],  # Invisible trace for legend
+        #     mode="lines",
+        #     line=dict(color=holiday_color, width=2),
+        #     name="Holiday",
+        # ))
 
     for i in range(len(positive_super_count) - 1):
         start = positive_super_count.iloc[i][timestamp_column]
