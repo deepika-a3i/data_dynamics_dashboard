@@ -1,6 +1,6 @@
 import polars as pl
 import pandas as pd
-
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
@@ -19,6 +19,7 @@ def get_lin_regression_trend(sales_df,
     timestamp_col = f'Timestamp_{resolution}'
 
     df_reg = sales_df[sales_df[product_or_product_group] == product].copy()
+    # df_reg.fillna({value_to_plot:0}, inplace = True)
     regression_window = [pd.to_datetime(regression_window[0]), pd.to_datetime(regression_window[1])]
     
 
@@ -43,8 +44,8 @@ def get_lin_regression_trend(sales_df,
     trend_prct = (df_reg[f"{value_to_plot}_trend"].iloc[-1] 
                   - df_reg[f"{value_to_plot}_trend"].iloc[0])/df_reg[f"{value_to_plot}_trend"].iloc[0]
 
-
-    return df_reg,int(trend_prct*100)
+    
+    return df_reg,0 if np.isnan(trend_prct) else int(trend_prct*100)
 
 def add_holidays_count(sales_df,holidays_list,resolution):
 
@@ -425,12 +426,12 @@ def get_sorted_list_of_products(sales_df,
     if drop_products_with_zero_sales:
         product_totals = product_totals[product_totals[value_to_plot] > 0]
     # Sort products by total sales (descending order)
-    if top_or_bottom == "bottom":
-        ascending = True
+    if top_or_bottom == "Bottom":
+        ascending_flag = True
     else:
-        ascending = False
+        ascending_flag = False
 
-    product_totals = product_totals.sort_values(by=value_to_plot, ascending=ascending)[product_or_product_group].to_list()
+    product_totals = product_totals.sort_values(by=value_to_plot, ascending=ascending_flag)[product_or_product_group].to_list()
     #product_totals.remove('Total')
     return product_totals
 
@@ -467,6 +468,9 @@ def create_weekdays_box_plot(
     value_to_plot="gross_price",
     product_or_product_group="product",
     categories_to_plot= None,
+    number_of_products_to_plot=5,
+    top_or_bottom="top",
+    drop_products_with_zero_sales=True,
     start_date = None,
     end_date = None,
 ):
@@ -480,9 +484,21 @@ def create_weekdays_box_plot(
     from_date = sales_df[timestamp_column].min().strftime('%Y-%m-%d')
     to_date = sales_df[timestamp_column].max().strftime('%Y-%m-%d')
     sales_df["weekday"] = sales_df[timestamp_column].dt.day_name()
-    sales_df = sales_df[sales_df[product_or_product_group].isin(categories_to_plot)]
+    
     box_plot_figs_dict = {}
-    for category in categories_to_plot:
+    categories_to_return = get_final_list_of_categories_to_plot(sales_df,
+                                                            start_date,
+                                                            end_date,
+                                                            timestamp_column,
+                                                            product_or_product_group,
+                                                            value_to_plot,
+                                                            top_or_bottom,
+                                                            number_of_products_to_plot,
+                                                            categories_to_plot,
+                                                            drop_products_with_zero_sales
+                                                            )
+    sales_df = sales_df[sales_df[product_or_product_group].isin(categories_to_return)]
+    for category in categories_to_return:
         # Step 1: Aggregate total sales per day per weekday
         cat_sales_df = sales_df[sales_df[product_or_product_group] == category]
         df_grouped = cat_sales_df.groupby(["weekday", f"{timestamp_column}"])[value_to_plot].sum().reset_index()
@@ -503,49 +519,8 @@ def create_weekdays_box_plot(
         fig.update_layout(width=1200, height=600)
         # st.plotly_chart(fig, use_container_width=True)
         box_plot_figs_dict.update({category : fig})
-    return box_plot_figs_dict
+    return box_plot_figs_dict, categories_to_return
 
-
-def create_weekdays_bar_plot(
-    df_dict,
-    resolution="day",
-    value_to_plot="gross_price",
-    product_or_product_group="product",
-    categories_to_plot=None,
-    start_date=None,
-    end_date=None,
-):
-    sales_df = df_dict[resolution][product_or_product_group]
-    timestamp_column = f'Timestamp_{resolution}'
-    sales_df[timestamp_column] = pd.to_datetime(sales_df[timestamp_column])
-    sales_df = sales_df[
-        (sales_df[timestamp_column] >= pd.to_datetime(start_date))
-        & (sales_df[timestamp_column] <= pd.to_datetime(end_date))
-    ]
-    from_date = sales_df[timestamp_column].min().strftime('%Y-%m-%d')
-    to_date = sales_df[timestamp_column].max().strftime('%Y-%m-%d')
-    sales_df["weekday"] = sales_df[timestamp_column].dt.day_name()
-    sales_df = sales_df[sales_df[product_or_product_group].isin(categories_to_plot)]
-    bar_plot_figs_dict = {}
-    
-    for category in categories_to_plot:
-        # Step 1: Aggregate total sales per day per weekday
-        cat_sales_df = sales_df[sales_df[product_or_product_group] == category]
-        df_grouped = cat_sales_df.groupby("weekday")[value_to_plot].agg(['mean', 'std']).reset_index()
-        
-        # Step 2: Create bar plot with error bars (std deviation)
-        fig = px.bar(df_grouped, x="weekday", y="mean", error_y="std",
-                    title=f"Average Sales by Weekday {value_to_plot} for {category} | {from_date} - {to_date}",
-                    labels={"weekday": "Weekday", "mean": "Average Sales"},
-                    category_orders={"weekday": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]})
-        
-        # Adjust figure size
-        fig.update_layout(width=1200, height=600)
-        #  Add mean values as text labels
-        # fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
-        bar_plot_figs_dict.update({category: fig})
-    
-    return bar_plot_figs_dict
 
 def create_plot_sales_figure(
     df_dict,
@@ -676,21 +651,7 @@ def create_plot_sales_figure(
                 legendgroup="holidays"  # Group all traces under "holidays"
             ))
             first_holiday = False  # Set to False after first trace
-            # fig.add_shape(
-            #     type="line",
-            #     x0=pd.Timestamp(ts),
-            #     x1=pd.Timestamp(ts),
-            #     y0=0,
-            #     y1=sales_df[value_to_plot].max() * 1,  # Adjust y-range as needed
-            #     line=dict(color=holiday_color),  # ash="dash")
-            # )
-        # Add a manual legend entry for the holiday
-        # fig.add_trace(go.Scatter(
-        #     x=[None], y=[None],  # Invisible trace for legend
-        #     mode="lines",
-        #     line=dict(color=holiday_color, width=2),
-        #     name="Holiday",
-        # ))
+            
 
     for i in range(len(positive_super_count) - 1):
         start = positive_super_count.iloc[i][timestamp_column]

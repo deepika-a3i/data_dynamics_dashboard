@@ -57,6 +57,8 @@ def select_period_options():
         default=default,
         
     )
+    if st.session_state.period_selection_mode is None:
+        st.session_state.period_selection_mode = "Last x Months"
     
 
 
@@ -168,6 +170,8 @@ def select_plot_options_common(forecasting=False):
             st.session_state.categorical_columns_of_interest,
             default=default,
         )
+        if st.session_state.product_or_product_group is None:
+            st.session_state.product_or_product_group = st.session_state.categorical_columns_of_interest[0]
 
 
         if st.session_state.value_to_plot is not None:
@@ -180,6 +184,8 @@ def select_plot_options_common(forecasting=False):
             st.session_state.numeric_columns_of_interest,
             default=default,
         )
+        if st.session_state.value_to_plot is None:
+            st.session_state.value_to_plot = st.session_state.numeric_columns_of_interest[0]
 
     with col2:
 
@@ -196,6 +202,8 @@ def select_plot_options_common(forecasting=False):
             default=default_selection_mode,
 
         )
+        if st.session_state.selection_mode is None:
+            st.session_state.selection_mode = "Manually"
 
 
         if st.session_state.selection_mode == "Top or Bottom":
@@ -204,11 +212,6 @@ def select_plot_options_common(forecasting=False):
                 default_number_of_products_to_plot = st.session_state.number_of_products_to_plot
             else: 
                 default_number_of_products_to_plot = 5
-
-            if st.session_state.top_or_bottom is not None:
-                default_top_or_bottom = ["Top", "Bottom"].index(st.session_state.top_or_bottom)
-            else: 
-                default_top_or_bottom = 0
             st.session_state.number_of_products_to_plot = st.slider(
                 "Number of Elements to Plot",
                 min_value=1,
@@ -216,6 +219,12 @@ def select_plot_options_common(forecasting=False):
                 step=1,
                 value=default_number_of_products_to_plot,
             )
+
+            if st.session_state.top_or_bottom is not None:
+                default_top_or_bottom = ["Top", "Bottom"].index(st.session_state.top_or_bottom)
+            else: 
+                default_top_or_bottom = 0
+            
             st.session_state.top_or_bottom = st.selectbox(
                 "Top or Bottom", ["Top", "Bottom"], index=default_top_or_bottom
             )
@@ -259,6 +268,9 @@ def select_plot_options_common(forecasting=False):
         st.session_state.df_dict.keys(),
         default=list(st.session_state.df_dict.keys())[0],
     )
+    if st.session_state.resolution is None:
+        st.session_state.resolution = list(st.session_state.df_dict.keys())[0]
+
     # col1, col2 = st.columns(2)
     # with col1:
     select_period_options()
