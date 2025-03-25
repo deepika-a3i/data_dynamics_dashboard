@@ -5,7 +5,7 @@ import polars as pl
 
 from data_processing import load_sales_data
 from data_processing import find_plot_start_and_end_date
-
+from data_processing import resolution_map
 from dashboard_style import style_dashboard
 import pycountry
 from holidays import country_holidays
@@ -70,12 +70,17 @@ def select_period_options():
         else:
             default =5
 
-        st.session_state.number_of_months = st.slider(
-                "number_of_months",
+        def update_months():
+            st.session_state.number_of_months = st.session_state.get("number_months", default)
+
+        number_months = st.slider(
+                "Number of months",
                 min_value=1,
                 max_value=number_of_months_max,
                 step=1,
                 value=default,
+                key = "number_months",
+                on_change = update_months
             )
         st.session_state.start_date, st.session_state.end_date = find_plot_start_and_end_date(st.session_state.end_date_all,
                                                                                               st.session_state.number_of_months)
@@ -89,7 +94,7 @@ def select_period_options():
         else:
             default_start = st.session_state.start_date_all
             default_end = st.session_state.end_date_all
-        # with st.expander("Select Date Range"):
+        # with st.expander("Date Range"):
         st.session_state.start_date = st.date_input(
             "Start Date", min_value=st.session_state.start_date_all, 
             max_value=st.session_state.end_date_all, value=default_start
@@ -152,15 +157,18 @@ def get_holidays_list(min_date,max_date):
 
 
 def select_plot_options_common(forecasting=False):
-    st.success("Data Formatted Successfully!")
-    if not forecasting:
-        st.markdown("#### Choose your plot options")
-    else:
-        st.markdown("#### Choose your forecasting options")
+    # st.success("Data Formatted Successfully!")
+    # if not forecasting:
+    #     st.markdown("#### Choose your plot options")
+    # else:
+    #     st.markdown("#### Choose your forecasting options")
     
-    col1, col2 = st.columns(2)
+    # col1, col2 = st.columns(2)
 
-    with col1:
+    # with col1:
+
+    with st.sidebar.expander("🛍 Product Selection Settings"):
+
         if st.session_state.product_or_product_group is not None:
             default = st.session_state.product_or_product_group
         else: 
@@ -173,23 +181,8 @@ def select_plot_options_common(forecasting=False):
         if st.session_state.product_or_product_group is None:
             st.session_state.product_or_product_group = st.session_state.categorical_columns_of_interest[0]
 
+        # with col2:
 
-        if st.session_state.value_to_plot is not None:
-            default = st.session_state.value_to_plot
-        else: 
-            default = st.session_state.numeric_columns_of_interest[0]
-
-        st.session_state.value_to_plot = st.segmented_control(
-            "Choose a value to display",
-            st.session_state.numeric_columns_of_interest,
-            default=default,
-        )
-        if st.session_state.value_to_plot is None:
-            st.session_state.value_to_plot = st.session_state.numeric_columns_of_interest[0]
-
-    with col2:
-
-    
 
         if st.session_state.selection_mode is not None:
             default_selection_mode = st.session_state.selection_mode
@@ -197,8 +190,8 @@ def select_plot_options_common(forecasting=False):
             default_selection_mode = "Manually"
 
         st.session_state.selection_mode = st.segmented_control(
-            "Select Elements to Plot",
-            ["Manually", "Top or Bottom"],
+            "Select elements to plot",
+            ["Manually", "Top/Bottom"],
             default=default_selection_mode,
 
         )
@@ -206,28 +199,39 @@ def select_plot_options_common(forecasting=False):
             st.session_state.selection_mode = "Manually"
 
 
-        if st.session_state.selection_mode == "Top or Bottom":
-
-            if st.session_state.number_of_products_to_plot is not None:
-                default_number_of_products_to_plot = st.session_state.number_of_products_to_plot
-            else: 
-                default_number_of_products_to_plot = 5
-            st.session_state.number_of_products_to_plot = st.slider(
-                "Number of Elements to Plot",
-                min_value=1,
-                max_value=100,
-                step=1,
-                value=default_number_of_products_to_plot,
-            )
-
+        if st.session_state.selection_mode == "Top/Bottom":
             if st.session_state.top_or_bottom is not None:
                 default_top_or_bottom = ["Top", "Bottom"].index(st.session_state.top_or_bottom)
             else: 
                 default_top_or_bottom = 0
             
             st.session_state.top_or_bottom = st.selectbox(
-                "Top or Bottom", ["Top", "Bottom"], index=default_top_or_bottom
+                "Top/Bottom", ["Top", "Bottom"], index=default_top_or_bottom
             )
+            if st.session_state.number_of_products_to_plot is not None:
+                default_number_of_products_to_plot = st.session_state.number_of_products_to_plot
+            else: 
+                default_number_of_products_to_plot = 5
+            # st.session_state.number_of_products_to_plot = st.slider(
+            #     "Number of elements to plot",
+            #     min_value=1,
+            #     max_value=100,
+            #     step=1,
+            #     value=default_number_of_products_to_plot,
+            # )
+            def update_number():
+                st.session_state.number_of_products_to_plot = st.session_state.get("number_input", default_number_of_products_to_plot)
+
+            st.number_input(
+                "Number of elements to plot",
+                min_value=1,
+                max_value=15,
+                step=1,
+                key = "number_input",
+                value=default_number_of_products_to_plot,
+                on_change=update_number
+            )
+            
             st.session_state.categories_to_plot = None
         else:
             df = st.session_state.df_dict[list(st.session_state.df_dict.keys())[0]]
@@ -251,29 +255,54 @@ def select_plot_options_common(forecasting=False):
             else: 
                 default_categories_to_plot = categories_to_select_from[0]
 
-            st.session_state.categories_to_plot = st.multiselect(
-                "Choose Elements to plot",
+            def update_categories():
+                st.session_state.categories_to_plot = st.session_state.get("categories", default_categories_to_plot)
+            st.multiselect(
+                "Choose elements to plot",
                 categories_to_select_from,
                 default=default_categories_to_plot,
+                key = "categories",
+                on_change = update_categories,
             )
-            st.session_state.number_of_products_to_plot = None
+            # st.session_state.number_of_products_to_plot = None
             st.session_state.top_or_bottom = "Top"
 
             #if not forecasting:
             #    st.session_state.drop_products_with_zero_sales = st.checkbox(
             #    "Hide products with zero sales", value=True
             #    )
-    st.session_state.resolution = st.segmented_control(
-        "Choose a resolution period",
-        st.session_state.df_dict.keys(),
-        default=list(st.session_state.df_dict.keys())[0],
-    )
-    if st.session_state.resolution is None:
-        st.session_state.resolution = list(st.session_state.df_dict.keys())[0]
+    
+    with st.sidebar.expander("📊 Sales Metric Settings"):
+        if st.session_state.value_to_plot is not None:
+            default = st.session_state.value_to_plot
+        else: 
+            default = st.session_state.numeric_columns_of_interest[0]
 
-    # col1, col2 = st.columns(2)
-    # with col1:
-    select_period_options()
+        st.session_state.value_to_plot = st.segmented_control(
+            "Choose a value to display",
+            st.session_state.numeric_columns_of_interest,
+            default=default,
+        )
+        if st.session_state.value_to_plot is None:
+            st.session_state.value_to_plot = st.session_state.numeric_columns_of_interest[0]
+
+    
+    
+    
+    with st.sidebar.expander("⏳ Time & Resolution Settings"):
+        resolution = st.segmented_control(
+            "Choose a resolution period",
+            ["Daily", "Weekly", "Monthly"],
+            default= "Daily",
+        )
+        st.session_state.resolution = resolution_map[resolution]
+        if st.session_state.resolution is None:
+            st.session_state.resolution = list(st.session_state.df_dict.keys())[0]
+
+        # col1, col2 = st.columns(2)
+        # with col1:
+        
+        select_period_options()
 
     #st.session_state.markers = st.checkbox("Show_markers", value=True)
     #st.session_state.line_shape = st.segmented_control(
@@ -290,13 +319,30 @@ def select_plot_options_common(forecasting=False):
 
     # with col2:
 
+    with st.sidebar.expander("🏦 Bank Holiday Settings"):
+        if st.session_state.bank_holidays is not None:
+            default_holidays = st.session_state.bank_holidays
+        else: 
+            default_holidays = True
+        def update_holidays():
+            st.session_state.bank_holidays = st.session_state.get("holidays", default_holidays)
+        st.toggle("Display bank holidays", 
+                    value=default_holidays, 
+                    key = "holidays", 
+                    on_change = update_holidays)
 
+        if st.session_state.bank_holidays:
+            select_country_options()
+            get_holidays_list(st.session_state.start_date_all,st.session_state.end_date_all)
+    if st.sidebar.button("🚪 Logout"):
+        logout()
 
-    st.session_state.bank_holidays = st.toggle("Display Bank Holidays", value=st.session_state.bank_holidays)
+# Function to handle logout
+def logout():
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]  # Clear session state
+    st.rerun()  # Reload the app
 
-    if st.session_state.bank_holidays:
-        select_country_options()
-        get_holidays_list(st.session_state.start_date_all,st.session_state.end_date_all)
 
 def init_ddd():
     if is_running_on_streamlit_cloud():
@@ -325,9 +371,9 @@ def init_ddd():
     if "value_to_plot" not in st.session_state:
         st.session_state.value_to_plot = None
     if "number_of_products_to_plot" not in st.session_state:
-        st.session_state.number_of_products_to_plot = None
+        st.session_state.number_of_products_to_plot = 5
     if "categories_to_plot" not in st.session_state:
-        st.session_state.categories_to_plot = None
+        st.session_state.categories_to_plot = ['Total']
     if "top_or_bottom" not in st.session_state:
         st.session_state.top_or_bottom = None
     if "drop_products_with_zero_sales" not in st.session_state:
@@ -371,7 +417,7 @@ def init_ddd():
         st.session_state.start_date_all = None
         st.session_state.end_date_all = None
     if 'number_of_months'not in st.session_state:
-        st.session_state.number_of_months = None
+        st.session_state.number_of_months = 5
         st.session_state.period_selection_mode  = None
     if 'categorical_columns_of_interest' not in st.session_state:
         st.session_state.categorical_columns_of_interest = None
@@ -475,6 +521,8 @@ def main():
         # st.sidebar.success("Select a dashboard above.")
 
         st.success("Login successful!")
+        # if st.sidebar.button("🚪 Logout"):
+        #     logout()
         data_selection()
         if st.session_state.new_data_set:
             (

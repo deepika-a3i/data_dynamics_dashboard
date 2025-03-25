@@ -8,7 +8,11 @@ from datetime import timedelta
 import streamlit as st
 import plotly.colors as pc
 
-
+resolution_map = {
+    "Daily" : "day",
+    "Weekly" : "week",
+    "Monthly" : "month",
+}
 def get_lin_regression_trend(sales_df,
                             resolution,
                             product,
@@ -34,7 +38,9 @@ def get_lin_regression_trend(sales_df,
     X = df_reg[['x_axis']]
     y = df_reg[value_to_plot].values
 
-
+    if X.shape[0] == 0 or y.shape[0] == 0:
+        st.error("⚠️ Error: Insufficient data for regression. Try adjusting filters.")
+        return None, None
     model = LinearRegression()
     model.fit(X, y)
 
@@ -543,7 +549,10 @@ def create_plot_sales_figure(
 
     timestamp_column = f'Timestamp_{resolution}'
 
-
+    sales_df = sales_df[
+        (sales_df[timestamp_column] >= pd.to_datetime(start_date))
+        & (sales_df[timestamp_column] <= pd.to_datetime(end_date))
+    ]
     # Ensure 'day' is sorted and convert to datetime (if not already)
     sales_df = sales_df.sort_values(timestamp_column)
 
