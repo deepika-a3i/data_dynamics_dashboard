@@ -25,19 +25,18 @@ def show_box_plots():
         start_date=st.session_state.start_date,
         end_date=st.session_state.end_date,
         )
-    box_plot_category = st.segmented_control("",categories_to_return, default=categories_to_return[0] )
+    box_plot_category = st.selectbox("🔍 Pick a Product or Group to Analyze",
+                                             categories_to_return,
+                                            #   default=categories_to_return[0] 
+                                              )
     if box_plot_category is None:
         box_plot_category = categories_to_return[0]
     st.session_state.selected_box_plot = box_plot_category
+    st.markdown(f"#### Boxplot for {box_plot_category}")
     st.plotly_chart(box_plot_figs_dict[st.session_state.selected_box_plot], use_container_width=True)
     # Additional Notes
     st.info("📌 **Tip**: Hover over the plot points to see exact values and outliers.")
     # st.markdown("### 📊 How to Read and Interpret a Box Plot")
-
-    st.markdown("""
-    #### Understanding a Box Plot
-    Hover over the 💡 icon for a quick guide.
-    """)
 
     # Hoverable Tooltip using Streamlit Expander
     with st.expander("💡 What is a Box Plot?"):
