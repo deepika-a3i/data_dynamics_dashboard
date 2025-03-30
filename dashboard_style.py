@@ -46,7 +46,7 @@ import streamlit as st
 
 #             /* Hover effect for buttons */
 #             section[data-testid="stSidebar"] button:hover {
-#                 background-color: #FFBBBB !important;
+#                 background-color: #4A4A4A !important;
 #             }
 
 #             /* Make segmented control background transparent */
@@ -58,7 +58,7 @@ import streamlit as st
 #             /* Ensure segmented control buttons match theme */
 #             div[data-baseweb="segmented-control"] div {
 #                 background-color: transparent !important;
-#                 color: #262730 !important; /* Dark text */
+#                 color: #4A4A4A !important; /* Dark text */
 #                 font-weight: bold !important;
 #             }
 
@@ -83,14 +83,14 @@ def style_dashboard():
         <style>
         /* --- GLOBAL STYLING FOR PASTEL IT-THEMED DASHBOARD --- */
         html, body, [data-testid="stAppViewContainer"] {
-            background-color: white !important; /* Simple white background */
+            background-color: transparent !important; /* Simple white background */
             color: #374151 !important; /* Dark gray for contrast */
             font-family: "Inter", sans-serif !important;
         }
 
         /* --- SIDEBAR STYLING --- */
         section[data-testid="stSidebar"] {
-            background-color: #F2F2F2 !important; /* Soft gray-blue */
+            background-color: transparent !important; /* Soft gray-blue */
             padding: 20px;
             width: 450px !important;
             border-right: 3px solid #A5B4FC !important; /* Soft purple accent */
@@ -100,19 +100,19 @@ def style_dashboard():
         section[data-testid="stSidebar"] * {
             font-size: 15px !important;
             font-weight: 500 !important;
-            color: #374151 !important; /* Dark gray for readability */
+            color: #000000 !important; /* Dark gray for readability */
         }
 
         /* Sidebar Headers */
         section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-            color: #191970 !important; /* midnight blue */
+            color: #000000 !important; /* midnight blue */
             font-weight: bold;
         }
 
         /* Sidebar Buttons */
         section[data-testid="stSidebar"] button {
-            background-color: #FAFAFA !important; /* Light pastel purple */
-            color: #1A1A1A !important;
+            background-color: transparent !important; /* Light pastel purple */
+            color: #4A4A4A !important;
             font-weight: 700;
             border-radius: 6px;
             padding: 10px 20px;
@@ -121,93 +121,43 @@ def style_dashboard():
 
         /* Sidebar Button Hover */
         section[data-testid="stSidebar"] button:hover {
-            background-color: #D8D8D8 !important; /* Bright pastel blue */
-            color: #F1F5F9 !important; /* Light gray */
+            background-color: #C0C0C0 !important; /* Bright pastel blue */
+            color: #FFFFFF !important; /* Light gray */
         }
 
-        /* --- WIDGET STYLING --- */
-
-        /* Buttons */
-        button {
-            background-color: #DDDDDD !important; /* Soft blue */
-            color: #1E293B !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-            padding: 10px 16px !important;
-            transition: all 0.3s ease-in-out;
-        }
-
-        /* Button Hover */
-        button:hover {
-            background-color: #1A1A1A !important; /* Deeper pastel blue */
-            color: #F8FAFC !important;
-        }
-
-        /* Segmented Control */
-        div[data-baseweb="segmented-control"] {
-            background-color: transparent !important;
-            border: none !important;
-        }
-
-        /* Segmented Control Default */
-        div[data-baseweb="segmented-control"] div {
-            background-color: #FFE4FF !important; /* Soft pastel peach */
-            color: #1E293B !important;
+        div[data-testid="stButton"] button {
+            width: 300px !important;  /* Fixed button width */
+            height: 40px !important;  /* Fixed button height */
+            font-size: 16px !important;  /* Readable font size */
             font-weight: 600 !important;
-            border-radius: 6px !important;
-        }
-
-        /* Segmented Control Selected */
-        div[data-baseweb="segmented-control"] div[aria-selected="true"] {
-            background-color: #FF69AA !important; /* Soft pastel pink */
-            color: #FF69AA !important;
-            font-weight: bold !important;
-            border: 5px solid #FF69B4 !important;
-            border-width: thick !important;
+            background-color: transparent !important;  /* Light gray background */
+            color: #333 !important;  /* Dark text for contrast */
+            border: 3px solid #E0E0E0 !important;
             border-radius: 8px !important;
+            transition: none !important;  /* Removes fade effect */
         }
 
-        /* Multi-Select Default */
-        div[data-baseweb="select"] div {
-            background-color: #F3F6FF !important; /* Soft pastel green */
-            color: #374151 !important;
-            font-weight: 600;
+        /* Change hover background to gray instead of fading */
+        div[data-testid="stButton"] button:hover {
+            background-color: #C0C0C0 !important;  /* Darker gray on hover */
+            color: black !important;
+        }
+        div[data-testid="stDownloadButton"] button {
+            width: 300px !important;  /* Same fixed width */
+            height: 40px !important;  /* Same fixed height */
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            background-color: transparent !important;  /* Light gray */
+            color: #333 !important;  /* Dark text */
+            border: 3px solid #E0E0E0 !important;
+            border-radius: 8px !important;
+            transition: none !important;  /* Removes hover fade */
         }
 
-        /* Multi-Select Selected */
-        div[data-baseweb="tag"] {
-            background-color: #98FAFF !important; /* Soft light green */
-            color: white !important;
-            font-weight: 700;
-            border: 2px solid #2E8B57 !important;
-            border-radius: 6px !important;
-            padding: 6px 10px !important;
-        }
-
-        /* Slicer Default */
-        div[data-baseweb="slider"] {
-            color: #374151 !important;
-        }
-
-        /* Slicer Active */
-        div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #1A1A1A !important; /* Soft pastel purple */
-            border-radius: 50% !important;
-            border: 3px solid white !important;
-        }
-
-        /* --- TABLE STYLING --- */
-        .stDataFrame {
-            border: 2px solid #A5B4FC !important;
-            border-radius: 10px !important;
-        }
-
-        /* --- CHART STYLING --- */
-        .stChart {
-            background-color: #F1F1F1 !important;
-            border-radius: 10px !important;
-            padding: 15px !important;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        /* Change hover background to darker gray */
+        div[data-testid="stDownloadButton"] button:hover {
+            background-color: #C0C0C0 !important;
+            color: black !important;
         }
         </style>
     """, unsafe_allow_html=True)

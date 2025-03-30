@@ -168,3 +168,4 @@ tzdata==2025.1
     # via pandas
 urllib3==2.3.0
     # via requests
+python-dotenv

@@ -12,7 +12,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from data_processing import add_holidays_count
-from Data_Portal import get_holidays_list
+from Data_selection import get_holidays_list
 from data_processing import get_lin_regression_trend
 
 import streamlit as st
@@ -191,6 +191,7 @@ def forecast_sales(sales_df,
     
     df_product = sales_df[sales_df[product_or_product_group] == product_to_forecast].copy()
     df_product = df_product.set_index(timestamp_col)
+
     df_product[value_to_plot].fillna(0, inplace=True)
 
     model_file_name = f"{model}_model_{resolution}_{value_to_plot}_{product_to_forecast}.pkl"

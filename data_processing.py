@@ -21,37 +21,41 @@ def get_lin_regression_trend(sales_df,
                             regression_window):
 
     timestamp_col = f'Timestamp_{resolution}'
+    try:
+        df_reg = sales_df[sales_df[product_or_product_group] == product].copy()
+        # df_reg.fillna({value_to_plot:0}, inplace = True)
+        regression_window = [pd.to_datetime(regression_window[0]), pd.to_datetime(regression_window[1])]
+        
 
-    df_reg = sales_df[sales_df[product_or_product_group] == product].copy()
-    # df_reg.fillna({value_to_plot:0}, inplace = True)
-    regression_window = [pd.to_datetime(regression_window[0]), pd.to_datetime(regression_window[1])]
-    
+        df_reg = df_reg[pd.to_datetime(df_reg[timestamp_col]) >= regression_window[0]]
+        df_reg = df_reg[(pd.to_datetime(df_reg[timestamp_col]) <= regression_window[1])]
 
-    df_reg = df_reg[pd.to_datetime(df_reg[timestamp_col]) >= regression_window[0]]
-    df_reg = df_reg[(pd.to_datetime(df_reg[timestamp_col]) <= regression_window[1])]
-
-    # Convert timestamp to numeric (days since start)
-    df_reg['x_axis'] = (df_reg[timestamp_col] - df_reg[timestamp_col].min()).dt.days
+        # Convert timestamp to numeric (days since start)
+        df_reg['x_axis'] = (df_reg[timestamp_col] - df_reg[timestamp_col].min()).dt.days
 
 
-    # Fit Linear Regression Model
-    X = df_reg[['x_axis']]
-    y = df_reg[value_to_plot].values
+        # Fit Linear Regression Model
+        X = df_reg[['x_axis']]
+        y = df_reg[value_to_plot].values
 
-    if X.shape[0] == 0 or y.shape[0] == 0:
+        if X.shape[0] == 0 or y.shape[0] == 0:
+            st.error("⚠️ Error: Insufficient data for regression. Try adjusting filters.")
+            return None, None
+        model = LinearRegression()
+        model.fit(X, y)
+
+        # Generate predicted values for the trendline
+        df_reg[f"{value_to_plot}_trend"] = model.predict(X)
+
+        trend_prct = (df_reg[f"{value_to_plot}_trend"].iloc[-1] 
+                    - df_reg[f"{value_to_plot}_trend"].iloc[0])/df_reg[f"{value_to_plot}_trend"].iloc[0]
+
+        
+        return df_reg,0 if np.isnan(trend_prct) else int(trend_prct*100)
+    except Exception as exc:
         st.error("⚠️ Error: Insufficient data for regression. Try adjusting filters.")
         return None, None
-    model = LinearRegression()
-    model.fit(X, y)
 
-    # Generate predicted values for the trendline
-    df_reg[f"{value_to_plot}_trend"] = model.predict(X)
-
-    trend_prct = (df_reg[f"{value_to_plot}_trend"].iloc[-1] 
-                  - df_reg[f"{value_to_plot}_trend"].iloc[0])/df_reg[f"{value_to_plot}_trend"].iloc[0]
-
-    
-    return df_reg,0 if np.isnan(trend_prct) else int(trend_prct*100)
 
 def add_holidays_count(sales_df,holidays_list,resolution):
 
