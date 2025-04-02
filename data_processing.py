@@ -658,7 +658,7 @@ def create_plot_sales_figure(
                 x=[pd.Timestamp(ts), pd.Timestamp(ts)],  # Vertical line
                 y=[0, sales_df[value_to_plot].max()],  # Full height of plot
                 mode="lines",
-                line=dict(color="gold", width=2),
+                line=dict(color="#C0C0C0", width=2, dash="dash"),
                 name="Holiday" if first_holiday else None,  # Show in legend only once
                 showlegend=first_holiday,  # Only first trace appears in legend
                 legendgroup="holidays"  # Group all traces under "holidays"
@@ -689,6 +689,7 @@ def create_plot_sales_figure(
         #     layer="below",
         #     line_width=0,
         # )
+    fig.update_traces(hovertemplate="%{y}<extra></extra>") 
     fig.update_layout(hovermode = "x unified" )
 
     return (

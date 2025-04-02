@@ -174,7 +174,12 @@ def select_plot_options_common(forecasting=False):
 
     # with col1:
     # st.sidebar.markdown("---")
-    st.sidebar.header("🛍 Product selection settings")
+    st.markdown(
+    '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">🛍 Product selection settings</div>', 
+    unsafe_allow_html=True
+    )
+
+    # st.sidebar.markdown("🛍 <b>Product selection settings </b>", unsafe_allow_html=True)
     
     if st.session_state.product_or_product_group is not None:
         default = st.session_state.product_or_product_group
@@ -296,7 +301,11 @@ def select_plot_options_common(forecasting=False):
 
 
     st.sidebar.markdown("---")
-    st.sidebar.header("⏳ Time & resolution settings")
+    st.markdown(
+    '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">⏳ Time & resolution settings</div>', 
+    unsafe_allow_html=True
+    )
+    # st.sidebar.header("⏳ Time & resolution settings")
     
     resolution = st.radio(
         "Choose a resolution period",
@@ -327,7 +336,11 @@ def select_plot_options_common(forecasting=False):
 
     # with col2:
     st.sidebar.markdown("---")
-    st.sidebar.header("🏦 Bank holiday settings")
+    st.markdown(
+    '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">🏦 Bank holiday settings</div>', 
+    unsafe_allow_html=True
+    )
+    # st.sidebar.title("🏦 Bank holiday settings")
     
     if st.session_state.bank_holidays is not None:
         default_holidays = st.session_state.bank_holidays
