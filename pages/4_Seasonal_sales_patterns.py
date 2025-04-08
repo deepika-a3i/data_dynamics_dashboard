@@ -77,6 +77,7 @@ def main():
 
     if st.session_state.is_running_on_streamlit_cloud:
         st.markdown("# Dashboard Under Construction")
+        st.page_link("Data_selection.py", label="Home Page", icon="🏠")
 
     else:
         st.markdown("# Sales Patterns & Seasonality")

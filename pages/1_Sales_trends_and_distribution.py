@@ -167,6 +167,7 @@ def main():
 
     if not (st.session_state.authenfied_user):
         st.warning("Please login to access the dashboard")
+        st.page_link("Data_selection.py", label="Home Page", icon="🏠")
 
     else:
 

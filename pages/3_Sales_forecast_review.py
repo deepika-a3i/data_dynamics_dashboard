@@ -44,6 +44,8 @@ def main():
 
     if not (st.session_state.authenfied_user):
         st.warning("Please login to access the dashboard")
+        st.page_link("Data_selection.py", label="Home Page", icon="🏠")
+
 
     else:
 
@@ -62,7 +64,7 @@ def main():
             if st.session_state.df_dict is not None:
                 get_start_and_end_dates_all()
                 with st.sidebar:
-                    select_plot_options_common()
+                    select_plot_options_common(forecasting=True)
 
 
                 sales_df = st.session_state.df_dict[st.session_state.resolution][st.session_state.product_or_product_group]
@@ -109,7 +111,8 @@ def main():
                                     st.session_state.product_or_product_group, 
                                     product_element,
                                     st.session_state.value_to_plot,
-                                    st.session_state.resolution)
+                                    st.session_state.resolution,
+                                    st.session_state.forecasting_model)
                                 
             
                             st.session_state.forecast_dict[(st.session_state.resolution,
@@ -148,6 +151,7 @@ def main():
                                         product_element,
                                         st.session_state.value_to_plot,
                                         st.session_state.resolution,
+                                        st.session_state.forecasting_model,
                                         forecast_horizon = (days_delta.days if st.session_state.resolution == "day" else (
                                             (days_delta.days // 7) if st.session_state.resolution == "week" else (days_delta.days // 30))),
                                         validation_forecast=True
