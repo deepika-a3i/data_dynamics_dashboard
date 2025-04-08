@@ -367,7 +367,7 @@ def init_ddd():
     if "selection_mode" not in st.session_state:
         st.session_state.selection_mode = None
     if "forecasting_model" not in st.session_state:
-        st.session_state.forecasting_model = None
+        st.session_state.forecasting_model = "Sarimax"
     if "forecast_dict" not in st.session_state:
         st.session_state.forecast_dict = {}
         st.session_state.forecast_validation_dict = {}
