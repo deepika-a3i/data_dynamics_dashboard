@@ -20,6 +20,7 @@ load_dotenv()
 
 running_on_cloud = os.getenv("is_cloud")
 
+
 st.set_page_config(
     page_title="Data Dynamics",
     page_icon="👋",
@@ -61,8 +62,6 @@ def select_period_options():
     st.session_state.period_selection_mode = st.radio(
         "Select period by",
         ["Last x months", "Dates"],
-        # default=default,
-        
     )
     if st.session_state.period_selection_mode is None:
         st.session_state.period_selection_mode = "Last x months"
@@ -164,48 +163,35 @@ def get_holidays_list(min_date,max_date):
 
 
 def select_plot_options_common(forecasting=False):
-    # st.success("Data Formatted Successfully!")
-    # if not forecasting:
-    #     st.markdown("#### Choose your plot options")
-    # else:
-    #     st.markdown("#### Choose your forecasting options")
+    if forecasting and st.session_state.user_type == "developer":
+        st.markdown("#### Choose your forecasting model")
+        if st.session_state.forecasting_model is not None:
+            default_forecasting_model = ["Sarimax", "LightGBM", "Random Forest"].index(st.session_state.forecasting_model)
+        else: 
+            default_forecasting_model = 0
+        
+        st.session_state.forecasting_model = st.selectbox(
+            "Model Name", ["Sarimax", "LightGBM", "Random Forest"], index=default_forecasting_model
+        )
     
-    # col1, col2 = st.columns(2)
-
-    # with col1:
-    # st.sidebar.markdown("---")
+    
     st.markdown(
     '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">🛍 Product selection settings</div>', 
     unsafe_allow_html=True
     )
 
-    # st.sidebar.markdown("🛍 <b>Product selection settings </b>", unsafe_allow_html=True)
-    
-    if st.session_state.product_or_product_group is not None:
-        default = st.session_state.product_or_product_group
-    else: 
-        default = st.session_state.categorical_columns_of_interest[0]
     st.session_state.product_or_product_group = st.radio(
         "Filter by",
         st.session_state.categorical_columns_of_interest,
-        # default=default,
+        
     )
     if st.session_state.product_or_product_group is None:
         st.session_state.product_or_product_group = st.session_state.categorical_columns_of_interest[0]
 
-    # with col2:
-
-
-    if st.session_state.selection_mode is not None:
-        default_selection_mode = st.session_state.selection_mode
-    else: 
-        default_selection_mode = "Manually"
-
+    
     st.session_state.selection_mode = st.radio(
         "Select elements to plot",
         ["Manually", "Top/bottom"],
-        # default=default_selection_mode,
-
     )
     if st.session_state.selection_mode is None:
         st.session_state.selection_mode = "Manually"
@@ -224,13 +210,7 @@ def select_plot_options_common(forecasting=False):
             default_number_of_products_to_plot = st.session_state.number_of_products_to_plot
         else: 
             default_number_of_products_to_plot = 5
-        # st.session_state.number_of_products_to_plot = st.slider(
-        #     "Number of elements to plot",
-        #     min_value=1,
-        #     max_value=100,
-        #     step=1,
-        #     value=default_number_of_products_to_plot,
-        # )
+        
         def update_number():
             st.session_state.number_of_products_to_plot = st.session_state.get("number_input", default_number_of_products_to_plot)
 
@@ -276,72 +256,35 @@ def select_plot_options_common(forecasting=False):
             key = "categories",
             on_change = update_categories,
         )
-        # st.session_state.number_of_products_to_plot = None
         st.session_state.top_or_bottom = "Top"
-
-        #if not forecasting:
-        #    st.session_state.drop_products_with_zero_sales = st.checkbox(
-        #    "Hide products with zero sales", value=True
-        #    )
-
-    # with st.sidebar.expander("📊 Sales Metric Settings"):
-    if st.session_state.value_to_plot is not None:
-        default = st.session_state.value_to_plot
-    else: 
-        default = st.session_state.numeric_columns_of_interest[0]
 
     st.session_state.value_to_plot = st.selectbox(
         "Choose a value to display",
         st.session_state.numeric_columns_of_interest,
-        # default=default,
     )
     if st.session_state.value_to_plot is None:
         st.session_state.value_to_plot = st.session_state.numeric_columns_of_interest[0]
-
-
 
     st.sidebar.markdown("---")
     st.markdown(
     '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">⏳ Time & resolution settings</div>', 
     unsafe_allow_html=True
     )
-    # st.sidebar.header("⏳ Time & resolution settings")
-    
     resolution = st.radio(
         "Choose a resolution period",
         ["Daily", "Weekly", "Monthly"],
-        # default= "Daily",
     )
     st.session_state.resolution = resolution_map[resolution]
     if st.session_state.resolution is None:
         st.session_state.resolution = list(st.session_state.df_dict.keys())[0]
 
-    # col1, col2 = st.columns(2)
-    # with col1:
-    
     select_period_options()
 
-    #st.session_state.markers = st.checkbox("Show_markers", value=True)
-    #st.session_state.line_shape = st.segmented_control(
-    #    "type of selection",
-    #    ["Step Plot", "Linear Plot"],
-    #    default="Linear Plot",
-    #    label_visibility="hidden",
-    #)
-    
-    #if st.session_state.line_shape == "Step Plot":
-    #    st.session_state.line_shape = "hv"
-    #else:
-    #    st.session_state.line_shape = "linear"
-
-    # with col2:
     st.sidebar.markdown("---")
     st.markdown(
     '<div style="background-color:#E0E0E0; padding:8px; border-radius:5px; font-size:22px; font-weight:bold;">🏦 Bank holiday settings</div>', 
     unsafe_allow_html=True
     )
-    # st.sidebar.title("🏦 Bank holiday settings")
-    
     if st.session_state.bank_holidays is not None:
         default_holidays = st.session_state.bank_holidays
     else: 
@@ -363,9 +306,9 @@ def select_plot_options_common(forecasting=False):
 def logout():
     for key in list(st.session_state.keys()):
         del st.session_state[key]  # Clear session state
+    # This tricks Streamlit into "redirecting" by updating the URL
     st.rerun()  # Reload the app
-
-
+    
 def init_ddd():
     if is_running_on_streamlit_cloud():
         st.session_state.use_athentication = True
@@ -377,6 +320,8 @@ def init_ddd():
 
     if "authenfied_user" not in st.session_state:
         st.session_state.authenfied_user = False
+    if "user_type" not in st.session_state:
+        st.session_state.user_type = "admin"
     if "data_selected" not in st.session_state:
         st.session_state.data_selected = False
     if "pl_df" not in st.session_state:
@@ -421,11 +366,11 @@ def init_ddd():
         st.session_state.trend_year = None
     if "selection_mode" not in st.session_state:
         st.session_state.selection_mode = None
+    if "forecasting_model" not in st.session_state:
+        st.session_state.forecasting_model = None
     if "forecast_dict" not in st.session_state:
         st.session_state.forecast_dict = {}
         st.session_state.forecast_validation_dict = {}
-
-
         st.session_state.forecast_df = pd.DataFrame([])
         st.session_state.forecast_validation_df = pd.DataFrame([])
 
@@ -435,7 +380,6 @@ def init_ddd():
         st.session_state.region_name = 'Wien'
         st.session_state.region_code = 'W'
     if 'start_date_all' not in st.session_state:
-
         st.session_state.start_date_all = None
         st.session_state.end_date_all = None
     if 'number_of_months'not in st.session_state:
@@ -457,19 +401,23 @@ def init_ddd():
 
 
 def authenticate_user():
-    correct_username = "dd-admin"
-    correct_password = "dd-admin-2025"
+    correct_usernames = ["dd-admin", "dd-developer"]
+    correct_passwords = ["dd-admin-2025", "dd-developer-2025"]
 
     # Prompt the user for username and password
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    st.session_state.authenfied_user = (
-        username == correct_username and password == correct_password
-    )
+    if username == correct_usernames[0] and password == correct_passwords[0]:
+        st.session_state.authenfied_user = True
+        st.session_state.user_type = "admin"
+    elif username == correct_usernames[1] and password == correct_passwords[1]:
+        st.session_state.authenfied_user = True
+        st.session_state.user_type = "developer"
+    
     st.markdown("Please enter your username and password")
     if st.button("Login"):
         if st.session_state.authenfied_user:
-            st.success("Login successful!")
+            st.success(f"Login successful! You have logged in as {st.session_state.user_type}.")
         else:
             st.error("Invalid username or password. Please try again.")
 

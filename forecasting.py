@@ -160,7 +160,7 @@ def forecast_sales(sales_df,
                     product_to_forecast,
                     value_to_plot, 
                     resolution,
-                    model="sarima", 
+                    forecasting_model="Sarimax", 
                     forecast_horizon=None, 
                     model_params=None, 
                     confidence_level=0.95,
@@ -194,11 +194,11 @@ def forecast_sales(sales_df,
 
     df_product[value_to_plot].fillna(0, inplace=True)
 
-    model_file_name = f"{model}_model_{resolution}_{value_to_plot}_{product_to_forecast}.pkl"
+    model_file_name = f"{forecasting_model}_model_{resolution}_{value_to_plot}_{product_to_forecast}.pkl"
     models_folder = Path("./saved_models/")
     
     forecast_horizon = forecast_horizon or {"day": 30, "week": 8, "month": 4}[resolution]
-    if model == "sarima":
+    if forecasting_model == "Sarimax":
         min_data_points = len(df_product)
         seasonal_period = {"day": 7, "week": min(52, max(4, min_data_points // 2)), "month": min(12, max(3, min_data_points // 2))}[resolution]
         
@@ -215,7 +215,7 @@ def forecast_sales(sales_df,
         forecasting_df = prepare_forecasting_df(df_product, forecast_horizon, freq, timestamp_col, resolution)
         
         forecast_df = generate_forecast(model_fit, forecasting_df, forecast_horizon, confidence_level)
-    elif model == "random_forest":
+    elif forecasting_model == "Random Forest":
         df_product["time_index"] = range(len(df_product))
         df_product["day_of_week"] = df_product.index.dayofweek  # Add day of week feature
         X = df_product[["time_index", "day_of_week"]]
@@ -367,72 +367,4 @@ def evaluate_model(y_true, y_pred):
             "MAE": mean_absolute_error(y_true, y_pred),
             "RMSE": np.sqrt(mean_squared_error(y_true, y_pred))
         }
-
-def plot_validate_forecast(sales_df,
-                            validate_forecasting_df, 
-                            categories_to_plot,
-                            product_or_product_group,
-                            resolution,
-                              value_to_plot):
-    
-    timestamp_col = f'Timestamp_{resolution}'
-
-    
-    
-    # Create a dataframe for Plotly
-    df_plot = y_true.copy().set_index(timestamp_col)
-    df_plot.rename(columns = {value_to_plot : "Actual"}, inplace = True)
-
-    df_plot["Forecast"] = y_pred["forecast"].copy()
-    # lower_bound, upper_bound = conf_int
-    df_plot["Lower Bound"] = y_pred["lower_bound"].copy()
-    df_plot["Upper Bound"] = y_pred["upper_bound"].copy()
-    # Calculate evaluation metrics
-    evaluate_model_dict = evaluate_model(y_true=df_plot["Actual"], y_pred=df_plot["Forecast"])
-
-    # Create the figure
-    fig = go.Figure()
-
-    # Add actual values
-    fig.add_trace(go.Scatter(
-        x=df_plot.index, y=df_plot["Actual"], mode="lines",
-        name="Actual", line=dict(color="blue")
-    ))
-
-    # Add forecast values
-    fig.add_trace(go.Scatter(
-        x=df_plot.index, y=df_plot["Forecast"], mode="lines",
-        name="Forecast", line=dict(color="red")
-    ))
-
-    # Add confidence interval (shaded region)
-    fig.add_trace(go.Scatter(
-        x=df_plot.index.tolist() + df_plot.index[::-1].tolist(),
-        y=df_plot["Upper Bound"].tolist() + df_plot["Lower Bound"][::-1].tolist(),
-        fill="toself",
-        fillcolor="rgba(255, 0, 0, 0.2)",  # Light pink
-        line=dict(color="rgba(255,255,255,0)"),
-        name="Confidence Interval"
-    ))
-        
-    # Set title and subtitle with evaluation metrics
-    fig.update_layout(
-        title=f"Validation Forecast (per {freq_name})",
-        # xaxis_title="Time",
-        yaxis_title=value_to_plot,
-        legend_title="Legend",
-        # template="plotly_white",
-        annotations=[
-            dict(
-                text=f"R2 Score: {evaluate_model_dict['R2 Score']:.2f} | "
-                     f"MAE: {evaluate_model_dict['MAE']:.2f} | "
-                     f"RMSE: {evaluate_model_dict['RMSE']:.2f}",
-                x=0.5, y=-0.2, xref="paper", yref="paper",
-                showarrow=False, font=dict(size=12, color="gray")
-            )
-        ]
-    )
-
-    return fig  # Return the Plotly figure object
-
 
